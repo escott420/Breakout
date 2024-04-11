@@ -31,7 +31,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         resetGame()
         makeLoseZone()
         makeLabels()
-        }
+    }
     
     func resetGame() {
         makeBall()
@@ -42,7 +42,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     func kickBall() {
         ball.physicsBody?.isDynamic = true
-        ball.physicsBody?.applyImpulse(CGVector(dx: 3, dy: 5))
+        ball.physicsBody?.applyImpulse(CGVector(dx: Int.random(in: -5...5), dy: 5))
     }
     
     func updateLabels() {
@@ -165,25 +165,35 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if contact.bodyA.node == brick ||
                 contact.bodyB.node == brick {
                 score += 1
+                ball.physicsBody!.velocity.dx *= CGFloat(1.02)
+                ball.physicsBody!.velocity.dy *= CGFloat(1.02)
                 updateLabels()
-                brick.removeFromParent()
-                removedBricks += 1
-                if removedBricks == bricks.count {
-                    gameOver(winner: true)
+                if brick.color == .blue {
+                    brick.color = .orange
+                }
+                else if brick.color == .orange {
+                    brick.color = .green
+                }
+                else {
+                    brick.removeFromParent()
+                    removedBricks += 1
+                    if removedBricks == bricks.count {
+                        gameOver(winner: true)
+                    }
                 }
             }
-        }
-        
-        if contact.bodyA.node?.name == "loseZone" ||
-            contact.bodyB.node?.name == "loseZone" {
-            lives -= 1
-            if lives > 0 {
-                score = 0
-                resetGame()
-                kickBall()
-            }
-            else {
-                gameOver(winner: false)
+            
+            if contact.bodyA.node?.name == "loseZone" ||
+                contact.bodyB.node?.name == "loseZone" {
+                lives -= 1
+                if lives > 0 {
+                    score = 0
+                    resetGame()
+                    kickBall()
+                }
+                else {
+                    gameOver(winner: false)
+                }
             }
         }
     }
@@ -212,12 +222,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let count = Int(frame.width) / 55
         let xOffset = (Int(frame.width) - (count * 55)) / 2 + Int(frame.minX) + 25
         let y = Int(frame.maxY) - 65
-        for i in 0..<count {
-            let x = i * 55 + xOffset
-            makeBrick(x: x, y: y, color: .green)
+        let colors: [UIColor] = [.blue, .orange, .green]
+        for r in 0..<3 {
+            let y = Int(frame.maxY) - 65 - (r * 35)
+            for i in 0..<count {
+                let x = i * 55 + xOffset
+                makeBrick(x: x, y: y, color: colors[r])
+            }
         }
     }
     
+    override func update(_ currentTime: TimeInterval) {
+        if abs(ball.physicsBody!.velocity.dx) < 100 {
+            ball.physicsBody?.applyImpulse(CGVector(dx: Int.random(in: -3...3), dy: 0))
+        }
+        if abs(ball.physicsBody!.velocity.dy) < 100 {
+            ball.physicsBody?.applyImpulse(CGVector(dx: 0, dy: Int.random(in: -3...3)))
+        }
     }
-    
-  
+}
+
